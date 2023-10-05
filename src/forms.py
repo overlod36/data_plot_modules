@@ -12,17 +12,23 @@ class Main_Window(QMainWindow):
         self.initialize()
     
     def initialize(self):
-        self.plot_data = data_handler.get_file_data()
+        self.input_data = data_handler.get_file_data()
+        self.plot_data = []
         self.setWindowTitle('Кластеры')
         self.setFixedSize(QSize(500, 250))
         self.setWindowIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_FileDialogContentsView))
 
+        self.error_msgbox = QMessageBox()
+        self.error_msgbox.setIcon(QMessageBox.Icon.Critical)
+        self.error_msgbox.setWindowIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_MessageBoxCritical))
+        self.error_msgbox.setWindowTitle("Ошибка!")
+
         self.author_label = QLabel('Леонтьев Дмитрий Сергеевич')
         self.claster_count_input = QLineEdit()
-        self.claster_count_input.setMaximumWidth(25)
+        self.claster_count_input.setMaximumWidth(20)
         self.claster_count_label = QLabel('Число кластеров')
         self.signs_count_input = QLineEdit()
-        self.signs_count_input.setMaximumWidth(25)
+        self.signs_count_input.setMaximumWidth(20)
         self.signs_count_label = QLabel('Число признаков')
         self.x_choose_input = QLineEdit()
         self.x_choose_input.setMaximumWidth(20)
@@ -32,12 +38,15 @@ class Main_Window(QMainWindow):
         self.y_choose_label = QLabel('Номер y')
         self.headers_listwidget = QListWidget()
         self.headers_listwidget.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection) 
-        for i, header in enumerate(self.plot_data['headers']):    
+        for i, header in enumerate(self.input_data['headers']):  
             self.headers_listwidget.addItem(f'[{i}] {header}')
+            
         self.headers_listwidget.setFocusPolicy(Qt.FocusPolicy.NoFocus)
         self.headers_listwidget.setMinimumWidth(350)
         self.plot_button = QPushButton('Построение')
         self.plot_button.setFixedSize(100, 30)
+        self.plot_button.setCheckable(True)
+        self.plot_button.clicked.connect(self.plot_button_clicked)
         self.graphwidget = pg.PlotWidget()
         self.graphwidget.setBackground('w')
         self.graphwidget.plot([i for i in range(1, 10)], [i for i in range(1, 10)], pen=pg.mkPen(color=(255, 0, 0)))
@@ -101,3 +110,18 @@ class Main_Window(QMainWindow):
         self.setCentralWidget(self.widget)
 
         self.show()
+    
+    def plot_button_clicked(self):
+        if self.claster_count_input.text() == '' or self.x_choose_input.text() == '' or self.y_choose_input.text() == '':
+            self.error_msgbox.setText('Не все поля заполнены!')
+            self.error_msgbox.exec()
+        else:
+            # проверка на число
+            self.plot_data = []
+            self.graphwidget.clear()
+            x_sign = int(self.x_choose_input.text())
+            y_sign = int(self.y_choose_input.text())
+            for data_element in self.input_data['table_data']:
+                if data_element[x_sign] and data_element[y_sign]:
+                    self.plot_data.append((data_element[x_sign], data_element[y_sign]))
+            self.graphwidget.plot([point[0] for point in self.plot_data], [point[1] for point in self.plot_data], pen=None, symbol='o')
