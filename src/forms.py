@@ -4,6 +4,7 @@ from PyQt6.QtWidgets import (QApplication, QPushButton, QWidget,
                              QLabel, QListWidget, QAbstractItemView)
 from PyQt6.QtCore import QSize, Qt
 import pyqtgraph as pg
+from data_module import data_handler
 
 class Main_Window(QMainWindow):
     def __init__(self):
@@ -11,6 +12,7 @@ class Main_Window(QMainWindow):
         self.initialize()
     
     def initialize(self):
+        self.plot_data = data_handler.get_file_data()
         self.setWindowTitle('Кластеры')
         self.setFixedSize(QSize(500, 250))
         self.setWindowIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_FileDialogContentsView))
@@ -30,8 +32,10 @@ class Main_Window(QMainWindow):
         self.y_choose_label = QLabel('Номер y')
         self.headers_listwidget = QListWidget()
         self.headers_listwidget.setSelectionMode(QAbstractItemView.SelectionMode.NoSelection) 
-        self.headers_listwidget.addItems(["One", "Two", "Three"])
+        for i, header in enumerate(self.plot_data['headers']):    
+            self.headers_listwidget.addItem(f'[{i}] {header}')
         self.headers_listwidget.setFocusPolicy(Qt.FocusPolicy.NoFocus)
+        self.headers_listwidget.setMinimumWidth(350)
         self.plot_button = QPushButton('Построение')
         self.plot_button.setFixedSize(100, 30)
         self.graphwidget = pg.PlotWidget()
