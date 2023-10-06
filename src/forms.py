@@ -7,6 +7,7 @@ from PyQt6.QtGui import QPen, QColor, QBrush
 import pyqtgraph as pg
 import random
 from data_module import data_handler
+from math_module.qalgo import clusters_formation, eucl_dist
 
 class Main_Window(QMainWindow):
     def __init__(self):
@@ -119,22 +120,26 @@ class Main_Window(QMainWindow):
             self.error_msgbox.exec()
         else:
             # проверка на число
+            # и проверка на диапозон значений кол-ва признаков
             self.plot_data = []
             self.graphwidget.clear()
             cluster_count = int(self.claster_count_input.text())
+            # signs_count = int(self.signs_count_input.text())
             x_sign = int(self.x_choose_input.text())
             y_sign = int(self.y_choose_input.text())
             self.graphwidget.setLabel('left', self.input_data['headers'][y_sign], units ='y')
             self.graphwidget.setLabel('bottom', self.input_data['headers'][x_sign], units ='x')
+            
             for data_element in self.input_data['table_data']:
                 if data_element[x_sign] and data_element[y_sign]:
-                    self.plot_data.append((data_element[x_sign], data_element[y_sign]))
-            self.central_points = [(random.randint(0, len(self.plot_data)-1), pg.mkPen(color=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), width=15)) for _ in range(cluster_count)]
+                    self.plot_data.append([data_element[x_sign], data_element[y_sign], None])
+
+            self.central_points = [random.randint(0, len(self.plot_data)-1) for _ in range(cluster_count)]
+            self.result_central_points = [[point, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))] for point in clusters_formation(self.plot_data, self.central_points)]
+
             for point in self.plot_data:
-                color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+                distations = [eucl_dist(self.plot_data[c_point[0]], point) for c_point in self.result_central_points]
+                color = self.result_central_points[distations.index(min(distations))][1]
                 sc = pg.ScatterPlotItem()
                 sc.addPoints(x=[point[0]],y=[point[1]], pen=pg.mkPen(color=color, width=1), brush=pg.mkBrush(color=color))
                 self.graphwidget.addItem(sc)
-            # self.graphwidget.plot([point[0] for point in self.plot_data], 
-            #                       [point[1] for point in self.plot_data], 
-            #                       pen=None, symbol='o')
