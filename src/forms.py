@@ -3,7 +3,9 @@ from PyQt6.QtWidgets import (QApplication, QPushButton, QWidget,
                              QLineEdit, QHBoxLayout, QMessageBox, QScrollArea,
                              QLabel, QListWidget, QAbstractItemView)
 from PyQt6.QtCore import QSize, Qt
+from PyQt6.QtGui import QPen, QColor, QBrush
 import pyqtgraph as pg
+import random
 from data_module import data_handler
 
 class Main_Window(QMainWindow):
@@ -15,7 +17,7 @@ class Main_Window(QMainWindow):
         self.input_data = data_handler.get_file_data()
         self.plot_data = []
         self.setWindowTitle('Кластеры')
-        self.setFixedSize(QSize(500, 250))
+        self.setFixedSize(QSize(500, 350))
         self.setWindowIcon(self.style().standardIcon(QStyle.StandardPixmap.SP_FileDialogContentsView))
 
         self.error_msgbox = QMessageBox()
@@ -119,9 +121,20 @@ class Main_Window(QMainWindow):
             # проверка на число
             self.plot_data = []
             self.graphwidget.clear()
+            cluster_count = int(self.claster_count_input.text())
             x_sign = int(self.x_choose_input.text())
             y_sign = int(self.y_choose_input.text())
+            self.graphwidget.setLabel('left', self.input_data['headers'][y_sign], units ='y')
+            self.graphwidget.setLabel('bottom', self.input_data['headers'][x_sign], units ='x')
             for data_element in self.input_data['table_data']:
                 if data_element[x_sign] and data_element[y_sign]:
                     self.plot_data.append((data_element[x_sign], data_element[y_sign]))
-            self.graphwidget.plot([point[0] for point in self.plot_data], [point[1] for point in self.plot_data], pen=None, symbol='o')
+            self.central_points = [(random.randint(0, len(self.plot_data)-1), pg.mkPen(color=(random.randint(0, 255), random.randint(0, 255), random.randint(0, 255)), width=15)) for _ in range(cluster_count)]
+            for point in self.plot_data:
+                color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))
+                sc = pg.ScatterPlotItem()
+                sc.addPoints(x=[point[0]],y=[point[1]], pen=pg.mkPen(color=color, width=1), brush=pg.mkBrush(color=color))
+                self.graphwidget.addItem(sc)
+            # self.graphwidget.plot([point[0] for point in self.plot_data], 
+            #                       [point[1] for point in self.plot_data], 
+            #                       pen=None, symbol='o')
