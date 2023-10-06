@@ -136,7 +136,7 @@ class Main_Window(QMainWindow):
 
             self.central_points = [random.randint(0, len(self.plot_data)-1) for _ in range(cluster_count)]
             self.result_central_points = [[point, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))] for point in clusters_formation(self.plot_data, self.central_points)]
-
+            print(self.result_central_points)
             for point in self.plot_data:
                 distations = [eucl_dist(self.plot_data[c_point[0]], point) for c_point in self.result_central_points]
                 color = self.result_central_points[distations.index(min(distations))][1]
