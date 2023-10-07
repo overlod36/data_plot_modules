@@ -1,13 +1,13 @@
 from PyQt6.QtWidgets import (QApplication, QPushButton, QWidget, 
                              QMainWindow, QStyle, QVBoxLayout, QComboBox, 
                              QLineEdit, QHBoxLayout, QMessageBox, QScrollArea,
-                             QLabel, QListWidget, QAbstractItemView)
+                             QLabel, QListWidget, QAbstractItemView, QRadioButton, QButtonGroup)
 from PyQt6.QtCore import QSize, Qt
 from PyQt6.QtGui import QPen, QColor, QBrush
 import pyqtgraph as pg
 import random
 from data_module import data_handler
-from math_module.qalgo import clusters_formation, eucl_dist
+from math_module.qalgo import clusters_formation, eucl_dist, manch_dist
 
 class Main_Window(QMainWindow):
     def __init__(self):
@@ -50,9 +50,18 @@ class Main_Window(QMainWindow):
         self.plot_button.setFixedSize(100, 30)
         self.plot_button.setCheckable(True)
         self.plot_button.clicked.connect(self.plot_button_clicked)
+        self.radio_buttons = QButtonGroup()
+        self.eucl_label = QLabel('Евклидово расстояние')
+        self.manch_label = QLabel('Манхэттенское расстояние')
+        self.eucl_radio_button = QRadioButton()
+        self.manch_radio_button = QRadioButton()
         self.graphwidget = pg.PlotWidget()
         self.graphwidget.setBackground('w')
         self.graphwidget.plot([i for i in range(1, 10)], [i for i in range(1, 10)], pen=pg.mkPen(color=(255, 0, 0)))
+
+        self.radio_buttons.addButton(self.eucl_radio_button)
+        self.radio_buttons.addButton(self.manch_radio_button)
+        self.eucl_radio_button.setChecked(True)
 
         self.name_layout = QHBoxLayout()
         self.name_layout.addWidget(self.author_label, alignment=Qt.AlignmentFlag.AlignRight)
@@ -85,14 +94,28 @@ class Main_Window(QMainWindow):
         self.inputs_layout.addLayout(self.x_choose_input_layout)
         self.inputs_layout.addLayout(self.y_choose_input_layout)
 
-        self.buttons_layout = QHBoxLayout()
+        self.eucl_layout = QHBoxLayout()
+        self.eucl_layout.addWidget(self.eucl_label)
+        self.eucl_layout.addWidget(self.eucl_radio_button)
+
+        self.manch_layout = QHBoxLayout()
+        self.manch_layout.addWidget(self.manch_label)
+        self.manch_layout.addWidget(self.manch_radio_button)
+
+        self.buttons_layout = QVBoxLayout()
         self.buttons_layout.setContentsMargins(0, 15, 10, 0)
         self.buttons_layout.addWidget(self.plot_button, alignment=Qt.AlignmentFlag.AlignRight)
+
+        self.radio_layout = QVBoxLayout()
+        self.radio_layout.setContentsMargins(10, 5, 10, 0)
+        self.radio_layout.addLayout(self.eucl_layout)
+        self.radio_layout.addLayout(self.manch_layout)
 
         self.control_layout = QVBoxLayout()
         self.control_layout.addLayout(self.name_layout)
         self.control_layout.addLayout(self.inputs_layout)
         self.control_layout.addLayout(self.buttons_layout)
+        self.control_layout.addLayout(self.radio_layout)
         self.control_layout.addStretch()
 
         self.graph_layout = QHBoxLayout()
@@ -121,6 +144,9 @@ class Main_Window(QMainWindow):
         else:
             # проверка на число
             # и проверка на диапозон значений кол-ва признаков
+            eucl_bool = True
+            if self.manch_radio_button.isChecked():
+                eucl_bool = False
             self.plot_data = []
             self.graphwidget.clear()
             cluster_count = int(self.claster_count_input.text())
@@ -135,10 +161,10 @@ class Main_Window(QMainWindow):
                     self.plot_data.append([data_element[x_sign], data_element[y_sign], None])
 
             self.central_points = [random.randint(0, len(self.plot_data)-1) for _ in range(cluster_count)]
-            self.result_central_points = [[point, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))] for point in clusters_formation(self.plot_data, self.central_points)]
+            self.result_central_points = [[point, (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255))] for point in clusters_formation(self.plot_data, self.central_points, eucl_bool)]
             print(self.result_central_points)
             for point in self.plot_data:
-                distations = [eucl_dist(self.plot_data[c_point[0]], point) for c_point in self.result_central_points]
+                distations = [eucl_dist(self.plot_data[c_point[0]], point) if eucl_bool else manch_dist(self.plot_data[c_point[0]], point) for c_point in self.result_central_points]
                 color = self.result_central_points[distations.index(min(distations))][1]
                 sc = pg.ScatterPlotItem()
                 sc.addPoints(x=[point[0]],y=[point[1]], pen=pg.mkPen(color=color, width=1), brush=pg.mkBrush(color=color))
