@@ -1,6 +1,6 @@
 # Реализация алгоритма k-means
 
-![cup](https://github.com/tache-osseuse/claster_plot/assets/71820145/a044a36f-077e-4380-bc38-6ea6be8ce774)
+<img src="https://github.com/tache-osseuse/claster_plot/assets/71820145/a044a36f-077e-4380-bc38-6ea6be8ce774" width="300">
 
 **Пример работы**
 
